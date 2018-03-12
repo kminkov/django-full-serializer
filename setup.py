@@ -8,7 +8,7 @@ setup(
     name="django-full-serializer",
     classifiers=[
         'Topic :: Utilities',
-        'Development Status :: Pre Alpha',
+        'Development Status :: 4 - Beta',
         "Framework :: Django",
         'Environment :: Web Environment',
         "Intended Audience :: Developers",
@@ -32,6 +32,6 @@ setup(
     setup_requires=["setuptools_scm"],
     use_scm_version=True,
 
-    install_requires=["django", "json"],
+    install_requires=["django"],
     packages=["django_full_serializer"]
 )
