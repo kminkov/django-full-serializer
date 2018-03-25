@@ -30,7 +30,7 @@ class Serializer(DjangoJSONSerializer):
                 }
                 if isinstance(self.relations, dict):
                     if isinstance(self.relations[fname], dict):
-                        options = self.relations[fname]
+                        options['relations'] = self.relations[fname]
                 self._current[fname] = serializer.serialize([related], **options)[0]
             else:
                 return super(Serializer, self).handle_fk_field(obj, field)
