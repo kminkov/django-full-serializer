@@ -78,7 +78,7 @@ def _read_objects(object_list, *, using=DEFAULT_DB_ALIAS, ignorenonexistent=Fals
                         field_name = field.remote_field.field_name
                         if isinstance(field_value, dict):
                             data[field.name] = list(_read_objects([field_value], **options))[0].object
-                        if hasattr(default_manager, 'get_by_natural_key'):
+                        elif hasattr(default_manager, 'get_by_natural_key'):
                             if hasattr(field_value, '__iter__') and not isinstance(field_value, str):
                                 obj = default_manager.db_manager(using).get_by_natural_key(*field_value)
                                 value = getattr(obj, field.remote_field.field_name)
