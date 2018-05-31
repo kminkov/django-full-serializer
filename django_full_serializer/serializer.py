@@ -1,6 +1,7 @@
 """
 Serialize data to/from JSON
 """
+
 from django.core.serializers.json import Serializer as DjangoJSONSerializer
 
 
@@ -15,37 +16,50 @@ class Serializer(DjangoJSONSerializer):
         # Prevent trailing spaces
         self.json_kwargs['separators'] = self.DEFAULT_JSON_SEPARATORS
 
+
+    def start_serialization(self):
+        self.objects = []
+        super(Serializer, self).start_serialization()
+
+
     def handle_fk_field(self, obj, field):
 
         fname = field.name
-        related = getattr(obj, fname)
-        if related is not None:
-            if fname in self.relations:
+        if fname in self.relations:
+            related = getattr(obj, fname)
+            if related is not None:
 
                 # perform full serialization of FK
                 serializer = Serializer()
+
                 options = {
                      'use_natural_primary_keys': self.use_natural_primary_keys,
                      'use_natural_foreign_keys': self.use_natural_foreign_keys,
+                     'skip_json_dump': True
                 }
                 if isinstance(self.relations, dict):
                     if isinstance(self.relations[fname], dict):
                         options['relations'] = self.relations[fname]
-                self._current[fname] = serializer.serialize([related], **options)[0]
+                serializer.serialize([related], **options)
+                self._current[fname] = serializer.objects[0]
+                return
             else:
                 return super(Serializer, self).handle_fk_field(obj, field)
         return super(Serializer, self).handle_fk_field(obj, field)
+
 
     def serialize(self, queryset, *args, **options):
 
         self.excludes = options.pop("excludes", [])
         self.relations = options.pop("relations", [])
         self.extras = options.pop("extras", [])
+        self.skip_json_dump = options.pop("skip_json_dump", False)
 
         if 'use_natural_primary_keys' not in options:
             options['use_natural_primary_keys'] = True
 
         return super(Serializer, self).serialize(queryset, *args, **options)
+
 
     def end_object(self, obj):
         concrete_model = obj._meta.proxy_for_model or obj.__class__
@@ -73,4 +87,7 @@ class Serializer(DjangoJSONSerializer):
                     if self.selected_fields is None or field.attname[:-3] in self.selected_fields:
                         self.handle_fk_field(obj, field)
 
-        return super(Serializer, self).end_object(obj)
+        if self.skip_json_dump is True:
+            self.objects.append(self.get_dump_object(obj))
+        else:
+            super(Serializer, self).end_object(obj)
