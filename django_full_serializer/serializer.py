@@ -56,7 +56,7 @@ class Serializer(DjangoJSONSerializer):
         self.skip_json_dump = options.pop("skip_json_dump", False)
 
         if 'use_natural_primary_keys' not in options:
-            options['use_natural_primary_keys'] = True
+            options['use_natural_primary_keys'] = False
 
         return super(Serializer, self).serialize(queryset, *args, **options)
 
