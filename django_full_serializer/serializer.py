@@ -22,6 +22,16 @@ class Serializer(DjangoJSONSerializer):
         super(Serializer, self).start_serialization()
 
 
+    def start_object(self, obj):
+        super(Serializer, self).start_object(obj)
+        self.deferred_fields = obj.get_deferred_fields()
+
+
+    def handle_field(self, obj, field):
+        if field.name not in self.deferred_fields:
+             super(Serializer, self).handle_field(obj, field)
+
+
     def handle_fk_field(self, obj, field):
 
         fname = field.name
@@ -33,8 +43,8 @@ class Serializer(DjangoJSONSerializer):
                 serializer = Serializer()
 
                 options = {
-                     'use_natural_primary_keys': self.use_natural_primary_keys,
-                     'use_natural_foreign_keys': self.use_natural_foreign_keys,
+                     'use_natural_primary_keys': False,
+                     'use_natural_foreign_keys': False,
                      'skip_json_dump': True
                 }
                 if isinstance(self.relations, dict):
@@ -55,8 +65,7 @@ class Serializer(DjangoJSONSerializer):
         self.extras = options.pop("extras", [])
         self.skip_json_dump = options.pop("skip_json_dump", False)
 
-        if 'use_natural_primary_keys' not in options:
-            options['use_natural_primary_keys'] = False
+        options['use_natural_primary_keys'] = False
 
         return super(Serializer, self).serialize(queryset, *args, **options)
 
